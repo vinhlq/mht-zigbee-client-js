@@ -21,7 +21,7 @@ Give the example
 
 ## Authors
 
-* **Vinh Le** - *Initial work* - [PurpleBooth](https://github.com/vinhlq/mht-zigbee-client-js)
+* **Vinh Le** - *Initial work* - [mht-zigbee-js](https://github.com/vinhlq/mht-zigbee-client-js)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
