@@ -4,6 +4,7 @@
 *.cert
 *.pem
 *.old
+mht-zigbee-examples*
 /**/dist
 /**/node_modules
 /**/config/*.json

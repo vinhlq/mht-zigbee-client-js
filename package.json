@@ -1,8 +1,8 @@
 {
     "name": "mht-zigbee-client",
     "description": "MHT Zigbee Client",
-    "version": "0.0.1",
-    "main": "./dist/index.js",
+    "version": "0.0.10",
+    "main": "./src/index.js",
     "repository": {
         "type": "git",
         "url": "https://github.com/vinhlq/mht-zigbee-client-js"
@@ -18,10 +18,8 @@
     "dependencies": {
         "body-parser": "^1.19.0",
         "ws": "^7.0.0",
-        "socket.io-client": "^2.2.0"
+        "socket.io-client": "^1.7.4"
     },
-    "devDependencies": {
-
-    },
+    "devDependencies": {},
     "license": "Apache-2.0"
 }
