@@ -1,7 +1,11 @@
 {
     "name": "mht-zigbee-client",
     "description": "MHT Zigbee Client",
+<<<<<<< HEAD
     "version": "0.0.14",
+=======
+    "version": "0.0.13",
+>>>>>>> 79ac20ad5f10fc539c21bc1a416837522efaaa1c
     "main": "./src/index.js",
     "repository": {
         "type": "git",
