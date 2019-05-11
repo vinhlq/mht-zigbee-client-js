@@ -2,6 +2,7 @@
     "name": "mht-zigbee-client",
     "description": "MHT Zigbee Client",
     "version": "0.0.14",
+
     "main": "./src/index.js",
     "repository": {
         "type": "git",
