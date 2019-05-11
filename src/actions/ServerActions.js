@@ -5,26 +5,10 @@ const Config = {
 };
 var _socket = null;
 
-// function restfulCall(type, url, data, success, error) {
-//   $.ajax({
-//     type: type,
-//     url: ApiUrl + url,
-//     contentType: 'application/json',
-//     xhrFields: {
-//       withCredentials: true
-//     },
-//     data: JSON.stringify(data),
-//     processData: false,
-//     success: success,
-//     error: error,
-//     crossDomain: true
-//   });
-// }
-
 const ServerActions = {
   // Bind all actions to socket callback
-  connect: function(address, callback) {
-    _socket = Config.io.connect(address);
+  connect: function(address, opts, callback) {
+    _socket = Config.io.connect(address, opts);
 
     _socket.on('devices', function(message) {
       this.dispatch(Constants.DEVICE_LIST_UPDATED, message);
