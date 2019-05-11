@@ -9,6 +9,7 @@ mht-zigbee-examples*
 /**/node_modules
 /**/config/*.json
 !/.gitignore
+!/.npmignore
 .git
 .idea
 
