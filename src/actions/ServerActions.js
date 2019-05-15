@@ -9,16 +9,16 @@ var sockets = {
 
 }
 
-function emit(event, data, iokey) {
+function emit(iokey, event, data) {
   if (sockets.hasOwnProperty(iokey)) {
-    _socket = sockets[iokey];
+    var _socket = sockets[iokey];
     _socket.emit(event, data);
   }
 }
 
-function emitEvent(event, data, iokey) {
+function emitEvent(iokey, event, data) {
   if(iokey) {
-    emit(event, data, iokey)
+    emit(iokey, event, data)
   }
   else {
     for (var iokey in sockets) {
@@ -111,7 +111,7 @@ var ServerActions = {
 
       _socket.on('serverlogstream', function(message) {
         message.io = iokey;
-        this.dispatch(Constants.SERVER_LOG_STREAM, message);
+        this.dispatch(Constants.SERVER_LOG_STUnregisterIOREAM, message);
       }.bind(this));
 
       _socket.on('gatewaylogstream', function(message) {
@@ -378,7 +378,7 @@ var ServerActions = {
   },
 
   setWebserverAttribute: function(attribute, value) {
-    emitEvent(iokey, 'servermessage', {type:"setwebserverattribute", attribute: attribute, value: value});
+    emitEvent(iokey, 'servermessage', {type:"seiokeytwebserverattribute", attribute: attribute, value: value});
   },
 
   requestTestLog: function(iokey) {
