@@ -1,3 +1,8 @@
 const ServerActions = require('./ServerActions');
-Object.assign(ServerActions.Config, {io: require('socket.io-client')});
-module.exports = ServerActions.Actions;
+let name = "socket-io";
+module.exports = {
+  name: name,
+  Actions: ServerActions.Actions({name: require('socket.io-client')}),
+  RegisterIO: ServerActions.RegisterIO,
+  UnregisterIO: ServerActions.UnregisterIO
+}
