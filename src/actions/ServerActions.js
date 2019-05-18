@@ -46,8 +46,8 @@ function ServerActions(ios) {
   this.Actions = {
     // Bind all actions to socket callback
     connect: function(iokey, options, callback) {
-      if (ios.hasOwnProperty(iokey)) {
-        var _socket = ios[iokey].connect(options);
+      if (that.ios.hasOwnProperty(iokey)) {
+        var _socket = that.ios[iokey].connect(options);
         that.sockets[iokey] = _socket;
 
         _socket.on('devices', function(message) {
