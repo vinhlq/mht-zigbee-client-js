@@ -4,11 +4,12 @@
 
 ## Cấu trúc
 
-* src/actions/ServerActions.js < [ServerActions.js(SiliconLabs)](https://github.com/SiliconLabs/gateway-management-ui/blob/master/reactui/src/js/actions/ServerActions.js)
-* src/actions/ServerActionsSocketIO.js: socket.io wrapper
-
+  * [x] [ServerActions.js](src/actions/ServerActions.js)
+    * ServerActions Abstract
+  * [x] [ServerActionsAwsIot.js](src/actions/ServerActionsAwsIot.js)
+    * ServerActions use aws-iot-device-sdk
+  * [ ] [ServerActionsAmplifyPubSub.js](src/actions/
+    * ServerActions use aws-amplify
 ## TODO
 
-* src/actions/ServerActionsREST.js: REST wrapper
-
-* src/actions/ServerActionsAwsIot.js: AwsIot wrapper
+  * [ ] src/actions/ServerActionsREST.js: REST wrapper
