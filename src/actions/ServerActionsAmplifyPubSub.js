@@ -1,77 +1,43 @@
-var DeviceSdk = require('aws-iot-device-sdk');
+const PubSub = require('@aws-amplify/pubsub').default;
+const events = require('events');
+const util = require('util');
 
-var gwEvents = [
-  'heartbeat',
-  'devices',
-  'rules',
-  'deviceleft',
-  'devicejoined',
-  'deviceupdate',
-  'otaevents',
-  'serversettings',
-  'gatewaysettings',
-  'otaavailablefiles',
-  'executed',
-  'serverlog',
-  'gatewaylog',
-  'traffictestlog',
-  'traffictestresults',
-  'networkSecurityLevel',
-  'serverlogstream',
-  'installcodecollection'
-];
+function PubSubSocket(pubsub) {
+  this.pubsub = pubsub;
+  this.emit('connect', this.pubsub);
+}
+PubSubSocket.prototype = {
+  subscribe: function(topic) {
+    this.pubsub.subscribe(topic).subscribe({
+      next: function (data) {
+        that.emit('message', [topic, data])
+      },
+      error: function (error) {
+        that.emit('error', error);
+      },
+      close: function() {
+        that.emit('close');
+      }
+    });
+  },
+  publish: function(topic, data) {
+    this.pubsub.publish(topic, data);
+  }
+}
+util.inherits(PubSubSocket, events.EventEmitter);
 
-var ServerAwsIotIO = {
-  connect: function(options, callback) {
+var ServerPubSubIO = {
+  connect: function(options) {
     let clientId = `chat-user-${Math.floor((Math.random() * 1000000) + 1)}`;
     let provider = options.provider || process.env.AWS_IOT_PROVIDER
     let thingName = 'thingShadow1';
     options.gatewayEui = options.gatewayEui || clientId;
 
-    var client = DeviceSdk.device({
-      region: options.region || process.env.AWS_REGION,
-
-      // AWS IoT Host endpoint
-      host: options.host || process.env.AWS_IOT_HOST,
-
-      // clientId created earlier
-      clientId: options.clientId || clientId,
-
-      // Connect via secure WebSocket
-      // protocol: 'wss',
-      protocol: 'wss',
-
-      // Set the maximum reconnect time to 500ms; this is a browser application
-      // so we don't want to leave the user waiting too long for reconnection after
-      // re-connecting to the network/re-opening their laptop/etc...
-      baseReconnectTimeMs: 250,
-      maximumReconnectTimeMs: 5000,
-
-      // Enable console debugging information
-      debug: options.debug || true,
-
-      // AWS access key ID, secret key and session token must be
-      // initialized with empty strings
-      accessKeyId: options.accessKeyId,
-      secretKey: options.secretAccessKey,
-      sessionToken: options.sessionToken,
-
-      // keyPath: path.join(__dirname, Constants.AWS_IOT_PRIVKEY_FILELOCATION),
-      // certPath: path.join(__dirname, Constants.AWS_IOT_CERT_FILELOCATION),
-      // caPath: path.join(__dirname, Constants.AWS_IOT_ROOT_CA_FILELOCATION),
-
-      // Let redux handle subscriptions
-      autoResubscribe: false,
-    });
+    var client = new PubSubSocket(PubSub);
 
     client.on('reconnect', () => {
       console.log('reconnect');
     });
-
-    client.on('offline', () => {
-      console.log('offline');
-    });
-    
 
     client.on('error', (err) => {
       console.log('iot client error', err);
@@ -132,10 +98,10 @@ var ServerAwsIotIO = {
 }
 
 const ServerActions = require('./ServerActions');
-ServerActionsAwsIot = ServerActions({'awsiot': ServerAwsIotIO});
+ServerActionsPubSub = ServerActions({'pubsub': ServerPubSubIO});
 module.exports = {
-  name: 'awsiot',
-  Actions: ServerActionsAwsIot.Actions,
-  RegisterIO: ServerActionsAwsIot.RegisterIO,
-  UnregisterIO: ServerActionsAwsIot.UnregisterIO
+  name: 'pubsub',
+  Actions: ServerActionsPubSub.Actions,
+  RegisterIO: ServerActionsPubSub.RegisterIO,
+  UnregisterIO: ServerActionsPubSub.UnregisterIO
 }
