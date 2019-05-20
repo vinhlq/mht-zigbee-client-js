@@ -17,15 +17,19 @@ function ServerActions(ios) {
   this.emitEvent = function(iokey, event, data) {
     if(iokey) {
       if (this.sockets.hasOwnProperty(iokey)) {
-        var _socket = this.sockets[iokey];
-        _socket.emit(event, data);
+        var sockets = this.sockets[iokey];
+        sockets.forEach(function(_socket) {
+          _socket.emit(event, data);
+        });
       }
     }
     else {
       for (var iokey in this.sockets) {
         if (this.sockets.hasOwnProperty(iokey)) {
-          var _socket = this.sockets[iokey];
-          _socket.emit(event, data);
+          var sockets = this.sockets[iokey];
+          sockets.forEach(function(_socket) {
+            _socket.emit(event, data);
+          });
         }
       }
     }
@@ -47,8 +51,12 @@ function ServerActions(ios) {
     // Bind all actions to socket callback
     connect: function(iokey, options, callback) {
       if (that.ios.hasOwnProperty(iokey)) {
+        if (!that.sockets.hasOwnProperty(iokey)) {
+          that.sockets[iokey] = [];
+        }
+
         var _socket = that.ios[iokey].connect(options);
-        that.sockets[iokey] = _socket;
+        that.sockets[iokey].push(_socket);
 
         _socket.on('devices', function(message) {
           message.io = iokey;
@@ -256,7 +264,7 @@ function ServerActions(ios) {
     },
 
     removeNode: function(iokey, node) {
-      var nodeId = node.data.nodeId;
+      var nodeId = node.data.nodeId;iokey
       var deviceEui = node.data.deviceEndpoint.eui64;
       var endpoint = node.data.deviceEndpoint.endpoint;
 
@@ -266,10 +274,10 @@ function ServerActions(ios) {
     setDeviceToggle: function(iokey, node) {
       if (node.data.deviceType === 'group') {
         var deviceTableIndex = node.data.itemList;
-        that.emitEvent(iokey, 'action', {type:"lighttoggle", deviceTableIndex: deviceTableIndex});
-      } else {
-        var deviceEndpoint = node.data.deviceEndpoint;
-        that.emitEvent(iokey, 'action', {type:"lighttoggle", deviceEndpoint: deviceEndpoint});
+        that.emitEvent(iokey, 'actioniokey', {type:"lighttoggle", deviceTableIndex: deviceTableIndex});
+      } else {iokey
+        var deviceEndpoint = node.datiokeya.deviceEndpoint;
+        that.emitEvent(iokey, 'actioniokey', {type:"lighttoggle", deviceEndpoint: deviceEndpoint});
       }
     },
 
