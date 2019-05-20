@@ -1,10 +1,14 @@
+const Amplify = require('aws-amplify');
 const PubSub = require('@aws-amplify/pubsub').default;
+const Auth = require('@aws-amplify/auth').default;
+const AWSIoTProvider = require('@aws-amplify/pubsub/lib/Providers').AWSIoTProvider;
+
 const events = require('events');
 const util = require('util');
 
-function PubSubSocket(pubsub) {
-  this.pubsub = pubsub;
-  this.emit('connect', this.pubsub);
+function PubSubSocket(configs) {
+  this.pubsub = PubSub;
+  this.configs = configs;
 }
 PubSubSocket.prototype = {
   subscribe: function(topic) {
@@ -22,18 +26,78 @@ PubSubSocket.prototype = {
   },
   publish: function(topic, data) {
     this.pubsub.publish(topic, data);
-  }
+  },
+  connect: function() {
+    Amplify.addPluggable(new AWSIoTProvider({
+      aws_pubsub_region: this.configs.awsRegion,
+      aws_pubsub_endpoint: this.configs.pubSubEndpoint,
+    }));
+    var _this = this;
+    Auth.currentCredentials()
+      .then((info) => {
+        let cognitoIdentityId = info._identityId;
+        let url = _this.configs.principalPolicy;
+        let body = {
+          gateway: _this.configs.gatewayEui,
+          user: _this.configs.username,
+          principal: cognitoIdentityId
+        }
+        _this.attachGw(url, body, (info) => {
+          if(info.status === "OK") {
+            that.emit('connect', true);
+          } else {
+            that.emit('connect', false);
+          }
+        })
+      })
+      .catch(err => {
+        console.log(err);
+        that.emit('connect', false);
+      });
+  },
+  attachGw: function(url, body, cb) {
+    let headers = new Headers({
+      'Content-Type': 'application/json',
+      'charset': 'UTF-8'
+    });
+    fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    })
+      .then(response => {
+        if (!response.ok) {
+          console.log(response);
+        } else
+          return response.json();
+      })
+      .then((responseJson) => {
+        if (typeof cb === 'function')
+          cb(responseJson);
+      })
+      .catch((err) => {
+        console.log(err);
+        if (typeof cb === 'function')
+          cb(null);
+      });
+  },
 }
 util.inherits(PubSubSocket, events.EventEmitter);
 
 var ServerPubSubIO = {
-  connect: function(options) {
-    let clientId = `chat-user-${Math.floor((Math.random() * 1000000) + 1)}`;
-    let provider = options.provider || process.env.AWS_IOT_PROVIDER
-    let thingName = 'thingShadow1';
-    options.gatewayEui = options.gatewayEui || clientId;
+  connect: function(configs, callback) {
+    configs.provider = configs.provider || "smarthome";
+    configs.awsRegion = configs.awsRegion || "southeast";
+    configs.pubSubEndpoint = configs.pubSubEndpoint || "wss://iot.amazonaws.com/mqtt";
+    configs.principalPolicy = configs.principalPolicy || "https://.amazonaws.com/dev/attachPrincipalPolicy";
+    configs.username = configs.username || "root";
 
-    var client = new PubSubSocket(PubSub);
+    let thingName = 'thingShadow1';
+    if (configs.provider && configs.gatewayEui)
+      thingName = `${configs.provider}-gw-${configs.gatewayEui}`;
+
+    var client = new PubSubSocket(configs);
+    client.connect();
 
     client.on('reconnect', () => {
       console.log('reconnect');
@@ -43,23 +107,16 @@ var ServerPubSubIO = {
       console.log('iot client error', err);
     });
 
-    client.on('connect', (connack) => {
-      console.log('connected', connack);
-      this.topicPrefix = `${provider}/${options.gatewayEui}`;
+    client.on('connect', (value) => {
+      console.log('connected', value);
+      this.topicPrefix = `${configs.provider}/${configs.gatewayEui}`;
 
       gwEvents.forEach(function(eventName) {
-        let topic = `${provider}/${options.gatewayEui}/${eventName}`;
+        let topic = `${configs.provider}/${configs.gatewayEui}/${eventName}`;
         client.subscribe(topic);
       });
       client.subscribe(`$aws/things/${thingName}/shadow/update`);
-
-      // setInterval(function(){
-      //   client.publish(`${this.topicPrefix}/action`, JSON.stringify({action: 'no action'}));
-      // }.bind(this), 1000);
-
-      // client.on('publish', function(topic) {
-      //   console.log('publish', topic);
-      // });
+      callback(value);
     })
 
     let thingShadowTopic = `$aws/things/${thingName}/shadow/update`;
@@ -81,15 +138,15 @@ var ServerPubSubIO = {
     });
 
     client.on('action', function(data) {
-      client.publish(`${provider}/${options.gatewayEui}/action`, JSON.stringify(data));
+      client.publish(`${configs.provider}/${configs.gatewayEui}/action`, JSON.stringify(data));
     }.bind(this));
 
     client.on('command', function(data) {
-      client.publish(`${provider}/${options.gatewayEui}/command`, JSON.stringify(data));
+      client.publish(`${configs.provider}/${configs.gatewayEui}/command`, JSON.stringify(data));
     }.bind(this));
 
     client.on('servermessage', function(data) {
-      client.publish(`${provider}/${options.gatewayEui}/command`, JSON.stringify(data));
+      client.publish(`${configs.provider}/${configs.gatewayEui}/command`, JSON.stringify(data));
     }.bind(this));
 
     // must return
