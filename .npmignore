@@ -1,0 +1,16 @@
+.*
+*.key
+*.crt
+*.cert
+*.pem
+credentials.csv
+avd.sh
+mht-zigbee-client-examples*
+config
+deprecated
+babel.config.js
+git_submodule_init.sh
+git.sh
+node_modules
+.git
+!/.npmignore
