@@ -6,6 +6,8 @@ function PubSubSocket(pubsub) {
   this.pubsub = pubsub;
   this.emit('connect', this.pubsub);
 }
+util.inherits(PubSubSocket, events.EventEmitter);
+
 PubSubSocket.prototype = {
   subscribe: function(topic) {
     this.pubsub.subscribe(topic).subscribe({
@@ -24,7 +26,6 @@ PubSubSocket.prototype = {
     this.pubsub.publish(topic, data);
   }
 }
-util.inherits(PubSubSocket, events.EventEmitter);
 
 var ServerPubSubIO = {
   connect: function(options) {
@@ -52,14 +53,6 @@ var ServerPubSubIO = {
         client.subscribe(topic);
       });
       client.subscribe(`$aws/things/${thingName}/shadow/update`);
-
-      // setInterval(function(){
-      //   client.publish(`${this.topicPrefix}/action`, JSON.stringify({action: 'no action'}));
-      // }.bind(this), 1000);
-
-      // client.on('publish', function(topic) {
-      //   console.log('publish', topic);
-      // });
     })
 
     let thingShadowTopic = `$aws/things/${thingName}/shadow/update`;

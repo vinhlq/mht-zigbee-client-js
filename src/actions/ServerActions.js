@@ -1,5 +1,4 @@
 var Constants = require('../Constants');
-// const io = require('socket.io-client');
 
 function ServerActions(ios) {
   if (!(this instanceof ServerActions)) {
