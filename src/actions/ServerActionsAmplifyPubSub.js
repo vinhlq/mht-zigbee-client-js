@@ -12,7 +12,7 @@ PubSubSocket.prototype = {
   subscribe: function(topic) {
     this.pubsub.subscribe(topic).subscribe({
       next: function (data) {
-        that.emit('message', [topic, data])
+        that.emit('message', {topic: topic, data: data.value})
       },
       error: function (error) {
         that.emit('error', error);
@@ -31,8 +31,12 @@ var ServerPubSubIO = {
   connect: function(options) {
     let clientId = `chat-user-${Math.floor((Math.random() * 1000000) + 1)}`;
     let provider = options.provider || process.env.AWS_IOT_PROVIDER
-    let thingName = 'thingShadow1';
     options.gatewayEui = options.gatewayEui || clientId;
+
+    var thingName = 'thingShadow1';
+    /* if (configs.provider && configs.gatewayEui)
+       thingName = `${configs.provider}-gw-${configs.gatewayEui}`;*/
+    var _shadowPrefix = `$aws/things/${thingName}/shadow`;
 
     var client = new PubSubSocket(PubSub);
 
@@ -46,8 +50,6 @@ var ServerPubSubIO = {
 
     client.on('connect', (connack) => {
       console.log('connected', connack);
-      this.topicPrefix = `${provider}/${options.gatewayEui}`;
-
       gwEvents.forEach(function(eventName) {
         let topic = `${provider}/${options.gatewayEui}/${eventName}`;
         client.subscribe(topic);
@@ -56,20 +58,20 @@ var ServerPubSubIO = {
     })
 
     let thingShadowTopic = `$aws/things/${thingName}/shadow/update`;
-    client.on('message', (topic, data) => {
-      if( data instanceof Buffer ||
-        typeof data === 'string') {
-        data = JSON.parse(data);
+    client.on('message', message => {
+      var data = message.data;
+      if (typeof data === 'string') {
+        data = JSON.parse(message.data);
       }
-      if(thingShadowTopic == topic) {
-        for(eventName in data.state.desired) {
-          if(data.state.desired.hasOwnProperty(eventName)) {
+      if (message.topic.indexOf(_shadowPrefix) > -1) {
+        if (data.state.desired) {
+          var events = Object.keys(data.state.desired);
+          events.map(eventName => {
             client.emit(eventName, data.state.desired[eventName]);
-          }
+          });
         }
-      }
-      else {
-        client.emit(topic.split('/')[2], data);
+      } else {
+        client.emit(message.topic.split('/')[2], data);
       }
     });
 
