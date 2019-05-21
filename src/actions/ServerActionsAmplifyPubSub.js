@@ -2,6 +2,27 @@ const PubSub = require('@aws-amplify/pubsub').default;
 const events = require('events');
 const util = require('util');
 
+var gwEvents = [
+  'heartbeat',
+  'devices',
+  'rules',
+  'deviceleft',
+  'devicejoined',
+  'deviceupdate',
+  'otaevents',
+  'serversettings',
+  'gatewaysettings',
+  'otaavailablefiles',
+  'executed',
+  'serverlog',
+  'gatewaylog',
+  'traffictestlog',
+  'traffictestresults',
+  'networkSecurityLevel',
+  'serverlogstream',
+  'installcodecollection'
+];
+
 function PubSubSocket(pubsub) {
   this.pubsub = pubsub;
   this.emit('connect', this.pubsub);
@@ -10,6 +31,7 @@ util.inherits(PubSubSocket, events.EventEmitter);
 
 PubSubSocket.prototype = {
   subscribe: function(topic) {
+    var that = this;
     this.pubsub.subscribe(topic).subscribe({
       next: function (data) {
         that.emit('message', {topic: topic, data: data.value})
@@ -30,7 +52,7 @@ PubSubSocket.prototype = {
 var ServerPubSubIO = {
   connect: function(options) {
     let clientId = `chat-user-${Math.floor((Math.random() * 1000000) + 1)}`;
-    let provider = options.provider || process.env.AWS_IOT_PROVIDER
+    let provider = options.provider || process.env.AWS_IOT_PROVIDER;
     options.gatewayEui = options.gatewayEui || clientId;
 
     var thingName = 'thingShadow1';
